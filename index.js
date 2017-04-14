@@ -121,10 +121,10 @@ var sc = module.exports = {
     }
     if (!helper) {
       ctx = ctx ? ctx + '.p' : 'p';
-    }
 
-    // Remove extra whitespace.
-    htmlTpl = htmlTpl.replace(/\s\s+/g, ' ');
+      // Remove extra whitespace.
+      htmlTpl = htmlTpl.trim().replace(/\s\s+/g, ' ').replace(/> </, '><');
+    }
 
     var blocks = sc.stringToBlocks(htmlTpl);
     var statements = [];
@@ -142,7 +142,7 @@ var sc = module.exports = {
 
       // Plain block
       if (block.type == 'plain') {
-        returns.push('\'' + (block.content)
+        returns.push('\'' + block.content
           .replace(/\r/g, '\\r')
           .replace(/\n/g, '\\n')
           .replace(/'/g, '\\' + '\'') + '\'');
@@ -184,7 +184,7 @@ var sc = module.exports = {
     }
     else {
       statements.push('return ' + returns.join('+'));
-      functions[name] = eval('(function(' + ctx + '){' + statements.join(';') + '})');
+      functions[name] = eval('(function(' + ctx + '){' + statements.join(';').replace(/\s\s+/g, ' ') + '})');
     }
   },
 

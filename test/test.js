@@ -58,7 +58,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <div>Bob</div><div>1960</div><div>small,medium,large</div> ');
+    expect(rendered).to.equal('<div>Bob</div><div>1960</div><div>small,medium,large</div>');
   });
 
   it('should escape HTML', function () {
@@ -74,7 +74,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <div>&lt;this&gt;&quot; &amp; is not&quot;&lt;/html&gt;</div> ');
+    expect(rendered).to.equal('<div>&lt;this&gt;&quot; &amp; is not&quot;&lt;/html&gt;</div>');
   });
 
   it('should handle if-statement', function () {
@@ -91,7 +91,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <a href="#" class="active">Link</a> ');
+    expect(rendered).to.equal('<a href="#" class="active">Link</a>');
   });
 
   it('should handle if-statement with else expression', function () {
@@ -113,7 +113,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <p>Hello, my name is John Doe.</p>  <p>I don\'t have hobby</p>  ');
+    expect(rendered).to.equal('<p>Hello, my name is John Doe.</p>  <p>I don\'t have hobby</p> ');
   });
 
   it('should handle negated if-statement', function () {
@@ -130,7 +130,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <a href="#">Link</a> ');
+    expect(rendered).to.equal('<a href="#">Link</a>');
   });
 
   it('should handle negated if-statement with else expression', function () {
@@ -152,7 +152,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <p>Hello, my name is John Doe.</p>  <p>I have hobby</p>  ');
+    expect(rendered).to.equal('<p>Hello, my name is John Doe.</p>  <p>I have hobby</p> ');
   });
 
 
@@ -183,7 +183,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <p>Here is the list of people I know:</p> <ul>  <li>John Doe</li>  <li>Mark Johnson</li>  </ul> ');
+    expect(rendered).to.equal('<p>Here is the list of people I know:</p><ul>  <li>John Doe</li>  <li>Mark Johnson</li>  </ul>');
   });
 
   it('should execute JS', function () {
@@ -197,7 +197,7 @@ describe('Compile', function () {
     //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <div>test8</div> ');
+    expect(rendered).to.equal('<div>test8</div>');
   });
 
   it('should execute JS in if-statement', function () {
@@ -211,24 +211,24 @@ describe('Compile', function () {
     var funcs = {};
 
     sc.compile(tpl, funcs, 'myTpl');
-    debugFuncs(funcs);
+    //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' <a href="#" class="active">Link</a> ');
+    expect(rendered).to.equal('<a href="#" class="active">Link</a>');
   });
 
   it('should execute multiple statements in JS in if-statement', function () {
     var tpl = '\
-      {#if js(let x = 10; var y = 5; x/2 == y)}YES{else}NO{/if}\
+      {#if js(let x = 10; let y = 5; x/2 == y)}YES{else}NO{/if}\
     ';
     var data = {};
     var funcs = {};
 
     sc.compile(tpl, funcs, 'myTpl');
-    debugFuncs(funcs);
+    //debugFuncs(funcs);
     var rendered = funcs.myTpl(data);
 
-    expect(rendered).to.equal(' YES ');
+    expect(rendered).to.equal('YES');
   });
 
 
