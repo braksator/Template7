@@ -1,0 +1,30 @@
+{
+  "name": "shortcurly",
+  "version": "1.0.0",
+  "description": "Light and powerful JavaScript templating",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec",
+    "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec",
+    "performance": "node ./test/performance"
+  },
+  "keywords": [
+    "javascript",
+    "templating",
+    "template",
+    "html"
+  ],
+  "author": "Daniel Braksator",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braksator/shortcurly.git"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-fs": "^1.0.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "mocha-eslint": "^3.0.1"
+  }
+}
