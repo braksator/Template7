@@ -1,5 +1,7 @@
 [![npm](https://img.shields.io/npm/dt/shortcurly.svg)](#)
 
+> Warning this project is not yet ready for your consumption.  It is a work-in-progress!
+
 ShortCurly
 ===========
 
