@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --reporter spec",
-    "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec",
-    "performance": "node ./test/performance"
+    "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec"
   },
   "keywords": [
     "javascript",

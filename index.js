@@ -12,6 +12,9 @@ var htmlmin = require('html-minifier').minify;
 
 var sc = module.exports = {
 
+  jsPerm: true,
+  state: false,
+
   options: {
     esprima: {},
     jsmin: {},
@@ -19,20 +22,23 @@ var sc = module.exports = {
   },
 
   helpers: {
-    '_partial': function (partialName, options) {
-      var p = Template7.prototype.partials[partialName];
-      if (!p || (p && !p.template)) return '';
-      if (!p.compiled) {
-        p.compiled = new Template7(p.template).compile();
+    partial: {
+      process: (ctx, block, returns, functions, report) => {
+        var arg = block.contextName[1] ? ctx + '.' + block.contextName[1] : 'p';
+        if (sc.state) {
+          arg = 'Object.assign(' + arg + ',{' + sc.state + ':' + ctx + '.' + sc.state + '})';
+        }
+        returns.push('this.' + block.contextName[0] + '(' + arg + ')');
+        if (!functions[block.contextName[0]]) {
+          if (!report.missing) {
+            report.missing = [];
+          }
+          report.missing.push(block.contextName[0]);
+        }
       }
-      var ctx = this;
-      for (var hashName in options.hash) {
-        ctx[hashName] = options.hash[hashName];
-      }
-      return p.compiled(ctx, options.data, options.root);
     },
     escape: {
-      process: (ctx, block, returns, functions) => {
+      process: (ctx, block, returns, functions, report) => {
         returns.push('this._es(' + ctx + '.' + block.contextName + ')');
         functions['_es'] = eval(
           '(function(c){return c.replace(/&/g, "&amp;")'
@@ -42,27 +48,27 @@ var sc = module.exports = {
       }
     },
     if: {
-      process: (ctx, block, returns, functions) => {
+      process: (ctx, block, returns, functions, report) => {
         var inverse = block.contextName.toString().substring(0, 1) == '!';
         block.contextName = inverse ? block.contextName.toString().substring(1) : block.contextName;
         returns.push(
           '('
           + (inverse ? '!' : '')
           + (ctx ? ctx + '.' : '') + block.contextName + '?'
-          + (sc.compile(block.content, functions, null, ctx, block) || "''") + ':'
-          + (sc.compile(block.inverseContent, functions, null, ctx, block) || "''")
+          + (sc.compile(block.content, functions, null, report, ctx, block) || "''") + ':'
+          + (sc.compile(block.inverseContent, functions, null, report, ctx, block) || "''")
           + ')'
         );
       },
     },
     for: {
-      process: (ctx, block, returns, functions) => {
+      process: (ctx, block, returns, functions, report) => {
         var forFunc = block.contextName[1] == 'in' ? sc.helpers.for.forIn : sc.helpers.for.forOf;
         returns.push(
           'this.' + forFunc.abbrv + '('
           + (ctx ? ctx + '.' : '') + block.contextName[2] + ','
-          + JSON.stringify(sc.compile(block.content, functions, null, 'k', block)) + ','
-          + JSON.stringify(sc.compile(block.inverseContent, functions, null, 'k', block))
+          + JSON.stringify(sc.compile(block.content, functions, null, report, 'k', block)) + ','
+          + JSON.stringify(sc.compile(block.inverseContent, functions, null, report, 'k', block))
           + ')'
         );
         functions[forFunc.abbrv] = forFunc.func();
@@ -70,13 +76,13 @@ var sc = module.exports = {
       forOf: {
         abbrv: '_fo',
         func: () => {
-          return eval('(function(a,c,d){let r=\'\';if(a.length){for(let k of a)r+=eval(c);}else{r+=d;}return r})');
+          return eval('(function(a,c,d){let r=\'\';if(a&&a.length){for(let k of a)r+=eval(c);}else{r+=eval(d);}return r})');
         },
       },
       forIn: {
         abbrv: '_fi',
         func: () => {
-          return eval('(function(a,c,d){let r=\'\';if(a.length){for(let k in a)r+=eval(c);}else{r+=d;}return r})');
+          return eval('(function(a,c,d){let r=\'\';if(a&&Object.keys(a).length){for(let k in a)r+=eval(c);}else{r+=eval(d);}return r})');
         },
       },
       blockAlter: function (helper, block) {
@@ -89,20 +95,26 @@ var sc = module.exports = {
       },
     },
     js: {
-      process: (ctx, block, returns, functions) => {
-        var parsed = esprima.tokenize(block.contextName.join(' '), sc.options.esprima);
-        var jsCode = [];
-        var newVars = [];
-        for (var i = 0; i < parsed.length; ++i) {
-          let isVar = parsed[i].type == 'Identifier';
-          let declares = ['let', 'var'];
-          if (isVar && i > 0 && declares.indexOf(parsed[i - 1].value) > -1) {
-            newVars.push(parsed[i].value);
+      process: (ctx, block, returns, functions, report) => {
+        if (sc.jsPerm) {
+          var parsed = esprima.tokenize(block.contextName.join(' '), sc.options.esprima);
+          var jsCode = [];
+          var newVars = [];
+          for (var i = 0; i < parsed.length; ++i) {
+            let isVar = parsed[i].type == 'Identifier';
+            let declares = ['let', 'var'];
+            if (isVar && i > 0 && declares.indexOf(parsed[i - 1].value) > -1) {
+              newVars.push(parsed[i].value);
+            }
+            jsCode.push((isVar && newVars.indexOf(parsed[i].value) == -1 ? ctx + '.' : '') + parsed[i].value);
           }
-          jsCode.push((isVar && newVars.indexOf(parsed[i].value) == -1 ? ctx + '.' : '') + parsed[i].value);
+          let minifiedJsCode = jsmin.transform(jsCode.join(' '), sc.options.jsmin);
+          returns.push('eval(\'' + minifiedJsCode.code.replace(/'/, "\'") + '\')');
         }
-        let minifiedJsCode = jsmin.transform(jsCode.join(' '), sc.options.jsmin);
-        returns.push('eval(\'' + minifiedJsCode.code.replace(/'/, "\'") + '\')');
+        else {
+          report.jsSkipped = true;
+        }
+
       },
     },
   },
@@ -115,7 +127,7 @@ var sc = module.exports = {
     return varName;
   },
 
-  compile: (htmlTpl, functions, name, ctx, helper) => {
+  compile: (htmlTpl, functions, name, report, ctx, helper) => {
     if (typeof htmlTpl !== 'string') {
       throw new Error('Invalid template');
     }
@@ -125,6 +137,7 @@ var sc = module.exports = {
       // Remove extra whitespace.
       htmlTpl = htmlTpl.trim().replace(/\s\s+/g, ' ').replace(/> </, '><');
     }
+    if (!report) report = {};
 
     var blocks = sc.stringToBlocks(htmlTpl);
     var statements = [];
@@ -158,19 +171,19 @@ var sc = module.exports = {
       if (block.type === 'helper') {
         if (block.helperName in sc.helpers) {
           let contextNameLast = block.contextName.length - 1;
-          let oldctx = ctx;
+          let oldCtx = ctx;
           if (block.contextName[0].substring(0,3) == 'js('
            && block.contextName[contextNameLast].substring(block.contextName[contextNameLast].length - 1) == ')') {
             block.contextName[0] = block.contextName[0].substring(3);
             block.contextName[contextNameLast] =
               block.contextName[contextNameLast].substring(0, block.contextName[contextNameLast].length - 1);
             let jsret = [];
-            sc.helpers.js.process(ctx, block, jsret, null);
+            sc.helpers.js.process(ctx, block, jsret, null, report);
             block.contextName = jsret[0];
             ctx = null;
           }
-          sc.helpers[block.helperName].process(ctx, block, returns, functions);
-          ctx = oldctx;
+          sc.helpers[block.helperName].process(ctx, block, returns, functions, report);
+          ctx = oldCtx;
         }
         else {
           throw new Error('Missing helper: "' + block.helperName + '"');
@@ -182,12 +195,15 @@ var sc = module.exports = {
       statements.push( returns.join('+') );
       return statements.join(';');
     }
-    else {
+    else if (name) {
       statements.push('return ' + returns.join('+'));
       functions[name] = eval('(function(' + ctx + '){' + statements.join(';').replace(/\s\s+/g, ' ') + '})');
+      var missingIndex = report.missing ? report.missing.indexOf(name) : -1;
+      if (missingIndex > -1) {
+        report.missing.splice(missingIndex, 1);
+      }
     }
   },
-
 
   stringToBlocks: (string) => {
     var blocks = [], i, j, k;
@@ -216,8 +232,7 @@ var sc = module.exports = {
         }
         // Helpers
         var helperSlices = sc.helperToSlices(block);
-        var helperName = helperSlices[0];
-        var isPartial = helperName === '>';
+        var helperName = helperSlices[0] === '>' ? 'partial' : helperSlices[0];
         var helperContext = [];
         var helperHash = {};
         for (j = 1; j < helperSlices.length; j++) {
@@ -284,11 +299,7 @@ var sc = module.exports = {
             });
           }
         }
-        else if (block.indexOf(' ') > 0) {
-          if (isPartial) {
-            helperName = '_partial';
-            if (helperContext[0]) helperContext[0] = '"' + helperContext[0].replace(/"|'/g, '') + '"';
-          }
+        else {
           blocks.push({
             type: 'helper',
             helperName: helperName,
@@ -304,7 +315,7 @@ var sc = module.exports = {
   helperToSlices: (string) => {
     var helperParts = string.replace(/[{}#}]/g, '').split(' ');
     var slices = [];
-    var shiftIndex, i, j;
+    var shiftIndex, i;
     var quoteSingleRegExp = new RegExp('\'', 'g');
     var quoteDoubleRegExp = new RegExp('"', 'g');
     for (i = 0; i < helperParts.length; i++) {
@@ -335,33 +346,8 @@ var sc = module.exports = {
           }
         }
         else {
-          if (part.indexOf('=') > 0) {
-            // Hash
-            var hashParts = part.split('=');
-            var hashName = hashParts[0];
-            var hashContent = hashParts[1];
-            if (!blockQuoteRegExp) {
-              blockQuoteRegExp = hashContent.indexOf('"') === 0 ? quoteDoubleRegExp : quoteSingleRegExp;
-              openingQuote = hashContent.indexOf('"') === 0 ? '"' : '\'';
-            }
-            if (hashContent.match(blockQuoteRegExp).length !== 2) {
-              shiftIndex = 0;
-              for (j = i + 1; j < helperParts.length; j++) {
-                hashContent += ' ' + helperParts[j];
-                if (helperParts[j].indexOf(openingQuote) >= 0) {
-                  shiftIndex = j;
-                  break;
-                }
-              }
-              if (shiftIndex) i = shiftIndex;
-            }
-            var hash = [hashName, hashContent.replace(blockQuoteRegExp, '')];
-            slices.push(hash);
-          }
-          else {
-            // Plain variable
-            slices.push(part);
-          }
+          // Plain variable
+          slices.push(part);
         }
       }
     }

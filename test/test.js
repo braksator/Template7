@@ -155,7 +155,6 @@ describe('Compile', function () {
     expect(rendered).to.equal('<p>Hello, my name is John Doe.</p>  <p>I have hobby</p> ');
   });
 
-
   it('should handle for-loop over arrays of objects', function () {
     var tpl = '\
       <p>Here is the list of people I know:</p>\
@@ -186,6 +185,127 @@ describe('Compile', function () {
     expect(rendered).to.equal('<p>Here is the list of people I know:</p><ul>  <li>John Doe</li>  <li>Mark Johnson</li>  </ul>');
   });
 
+  it('should handle for-loop over properties of objects', function () {
+    var tpl = '\
+      <p>Here are the properties of the person:</p>\
+      <ul>\
+        {#for property in person}\
+        <li>{property}: {person[property]}</li>\
+        {/for}\
+      </ul>\
+    ';
+    var data = {
+      person: {
+        firstName: 'John',
+        lastName: 'Doe'
+      }
+    };
+    var funcs = {};
+
+    sc.compile(tpl, funcs, 'myTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>firstName: John</li>  <li>lastName: Doe</li>  </ul>');
+  });
+
+  it('should handle for-loop over properties with if-statement wrapper', function () {
+    var tpl = '\
+      <p>Here are the properties of the person:</p>\
+      <ul>\
+        {#if person}\
+        {#for property in person}\
+        <li>{property}: {person[property]}</li>\
+        {/for}\
+        {/if}\
+      </ul>\
+    ';
+    var data = {
+      person: {
+        firstName: 'John',
+        lastName: 'Doe'
+      }
+    };
+    var funcs = {};
+
+    sc.compile(tpl, funcs, 'myTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>   <li>firstName: John</li>  <li>lastName: Doe</li>   </ul>');
+  });
+
+  it('should handle for-loop over properties of objects else condition', function () {
+    var tpl = '\
+      <p>Here are the properties of the person:</p>\
+      <ul>\
+        {#for property in person}\
+        <li>{property}: {person[property]}</li>\
+        {else}\
+        <li>No props</li>\
+        {/for}\
+      </ul>\
+    ';
+    var data = {
+      wrongParamName: {
+        firstName: 'John',
+        lastName: 'Doe'
+      }
+    };
+    var funcs = {};
+
+    sc.compile(tpl, funcs, 'myTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>No props</li>  </ul>');
+  });
+
+  it('should handle for-loop over arrays', function () {
+    var tpl = '\
+      <p>Here are the things I like:</p>\
+      <ul>\
+        {#for thing of like}\
+        <li>{thing}</li>\
+        {/for}\
+      </ul>\
+    ';
+    var data = {
+      like: ['people', 'places', 'things']
+    };
+    var funcs = {};
+
+    sc.compile(tpl, funcs, 'myTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<p>Here are the things I like:</p><ul>  <li>people</li>  <li>places</li>  <li>things</li>  </ul>');
+  });
+
+
+  it('should handle for-loop over arrays else condition', function () {
+    var tpl = '\
+      <p>Here are the things I like:</p>\
+      <ul>\
+        {#for thing of like}\
+        <li>{thing}</li>\
+        {else}\
+        <li>No items to display</li>\
+        {/for}\
+      </ul>\
+    ';
+    var data = {
+      like: [],
+    };
+    var funcs = {};
+
+    sc.compile(tpl, funcs, 'myTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<p>Here are the things I like:</p><ul>  <li>No items to display</li>  </ul>');
+  });
+
   it('should execute JS', function () {
     var tpl = '\
       <div>{js label + (3+5)}</div>\
@@ -198,6 +318,24 @@ describe('Compile', function () {
     var rendered = funcs.myTpl(data);
 
     expect(rendered).to.equal('<div>test8</div>');
+  });
+
+  it('should not execute JS', function () {
+    var tpl = '\
+      <div>{js label + (3+5)}</div>\
+    ';
+    var funcs = {};
+    var data = { label: 'test' };
+
+    sc.jsPerm = false;
+
+    sc.compile(tpl, funcs, 'myTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<div></div>');
+
+    sc.jsPerm = true;
   });
 
   it('should execute JS in if-statement', function () {
@@ -231,5 +369,104 @@ describe('Compile', function () {
     expect(rendered).to.equal('YES');
   });
 
+  it('should compile multiple templates', function () {
+    var nameTpl = '\
+      <div>{name}</div>\
+    ';
+    var yearTpl = '\
+      <div>{year}</div>\
+    ';
+    var masterTpl = '\
+      <div>{> nameTpl}{> yearTpl birthday}</div>\
+    ';
+    var data = {
+      name: 'Bob',
+      birthday: { year: 1960 },
+    };
+    var funcs = {};
+
+    sc.compile(nameTpl, funcs, 'nameTpl');
+    sc.compile(yearTpl, funcs, 'yearTpl');
+    sc.compile(masterTpl, funcs, 'masterTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.masterTpl(data);
+
+    expect(rendered).to.equal('<div><div>Bob</div><div>1960</div></div>');
+  });
+
+  it('should tolerate missing templates', function () {
+    var nameTpl = '\
+      <div>{name}</div>\
+    ';
+    var masterTpl = '\
+      <div>{> nameTpl}{> yearTpl birthday}</div>\
+    ';
+    var data = {
+      name: 'Bob',
+      birthday: { year: 1960 },
+    };
+    var funcs = {};
+    var report = {};
+
+    sc.compile(nameTpl, funcs, 'nameTpl', report);
+    sc.compile(masterTpl, funcs, 'masterTpl', report);
+    //debugFuncs(funcs);
+
+    expect(report.missing).to.deep.equal(['yearTpl']);
+  });
+
+  it('should compile multiple nested templates', function () {
+    var nameTpl = '\
+      <div>{name}</div>{> yearTpl birthday}\
+    ';
+    var yearTpl = '\
+      <div>{year}</div>\
+    ';
+    var masterTpl = '\
+      <div>{> nameTpl}</div>\
+    ';
+    var data = {
+      name: 'Bob',
+      birthday: { year: 1960 },
+    };
+    var funcs = {};
+
+    sc.compile(nameTpl, funcs, 'nameTpl');
+    sc.compile(yearTpl, funcs, 'yearTpl');
+    sc.compile(masterTpl, funcs, 'masterTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.masterTpl(data);
+
+    expect(rendered).to.equal('<div><div>Bob</div><div>1960</div></div>');
+  });
+
+  it('should handle state in a sub template', function () {
+    var tpl = '\
+      <div>{name}</div><div>{state.alpha}</div>{> subTpl sub}\
+    ';
+    var subTpl = '\
+      <div>{year} - {state.beta}</div>\
+    ';
+    var state = {
+      alpha: "uno",
+      beta: "dos",
+    };
+    var data = {
+      name: 'Bob',
+      sub: {
+        year: 1960,
+      },
+      state: state,
+    };
+    var funcs = {};
+    sc.state = 'state';
+
+    sc.compile(tpl, funcs, 'myTpl');
+    sc.compile(subTpl, funcs, 'subTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<div>Bob</div><div>uno</div><div>1960 - dos</div>');
+  });
 
 });

@@ -14,52 +14,6 @@ to generate HTML.
 The intention is to not send an expensive templating engine to the browser, but simple JS
 functions.
 
-On the server you write:
-
-```
-// Your template
-<p>Here are some people:</p>
-<ul>
-  {#for person of people}
-  <li>{person.firstName} {person.lastName}</li>
-  {/for}
-</ul>
-
-// Your data.
-{
-  people : [
-    {
-      firstName: 'John',
-      lastName: 'Doe'
-    },
-    {
-      firstName: 'Mark',
-      lastName: 'Johnson'
-    },
-  ]
-}
-```
-
-Then you compile it to this:
-
-```
-myTemplateFunctions = {
-  _fo:function (a,c,d){let r='';if(a.length){for(let k of a)r+=eval(c);}else{r+=d;}return r}
-  template:function (p){return'<p>Here are some people:</p><ul> '+this._fo(p.people,"' <li>'+k.firstName+' '+k.lastName+'</li>
-'","")+'</ul> '}
-}
-```
-
-Your application can execute the template function to write this to the browser:
-
-```
-<p>Here are some people:</p>
-<ul>
-  <li>John Doe</li>
-  <li>Mark Johnson</li>
-</ul>
-```
-
 ## Background
 
 After looking at various JavaScript templating modules I've decided to create
