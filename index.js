@@ -66,6 +66,7 @@ var sc = module.exports = {
         var forFunc = block.contextName[1] == 'in' ? sc.helpers.for.forIn : sc.helpers.for.forOf;
         returns.push(
           'this.' + forFunc.abbrv + '('
+          + ctx + ','
           + (ctx ? ctx + '.' : '') + block.contextName[2] + ','
           + JSON.stringify(sc.compile(block.content, functions, null, report, 'k', block)) + ','
           + JSON.stringify(sc.compile(block.inverseContent, functions, null, report, 'k', block))
@@ -76,13 +77,13 @@ var sc = module.exports = {
       forOf: {
         abbrv: '_fo',
         func: () => {
-          return eval('(function(a,c,d){let r=\'\';if(a&&a.length){for(let k of a)r+=eval(c);}else{r+=eval(d);}return r})');
+          return eval('((p,a,c,d)=>{let r=\'\';if(a&&a.length){for(let k of a)r+=eval(c);}else{r+=eval(d);}return r})');
         },
       },
       forIn: {
         abbrv: '_fi',
         func: () => {
-          return eval('(function(a,c,d){let r=\'\';if(a&&Object.keys(a).length){for(let k in a)r+=eval(c);}else{r+=eval(d);}return r})');
+          return eval('((p,a,c,d)=>{let r=\'\';if(a&&Object.keys(a).length){for(let k in a)r+=eval(c);}else{r+=eval(d);}return r})');
         },
       },
       blockAlter: function (helper, block) {

@@ -282,7 +282,6 @@ describe('Compile', function () {
     expect(rendered).to.equal('<p>Here are the things I like:</p><ul>  <li>people</li>  <li>places</li>  <li>things</li>  </ul>');
   });
 
-
   it('should handle for-loop over arrays else condition', function () {
     var tpl = '\
       <p>Here are the things I like:</p>\
@@ -467,6 +466,39 @@ describe('Compile', function () {
     var rendered = funcs.myTpl(data);
 
     expect(rendered).to.equal('<div>Bob</div><div>uno</div><div>1960 - dos</div>');
+
+    sc.state = false;
   });
 
+  it('should handle state in for-loop over properties of objects', function () {
+    var tpl = '\
+      <p>Here are the properties of the person:</p>\
+      <ul>\
+        {#for property in person}\
+        <li>{property}: {person[property]} {p.state.alpha}</li>\
+        {/for}\
+      </ul>\
+    ';
+    var state = {
+      alpha: "uno",
+      beta: "dos",
+    };
+    var data = {
+      person: {
+        firstName: 'John',
+        lastName: 'Doe'
+      },
+      state: state,
+    };
+    var funcs = {};
+    sc.state = 'state';
+
+    sc.compile(tpl, funcs, 'myTpl');
+    //debugFuncs(funcs);
+    var rendered = funcs.myTpl(data);
+
+    expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>firstName: John uno</li>  <li>lastName: Doe uno</li>  </ul>');
+
+    sc.state = false;
+  });
 });
