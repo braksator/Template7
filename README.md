@@ -196,7 +196,7 @@ There is support for JavaScript in templates.
 
 As a helper:
 
-`<div>{js label + (3+5)}</div>
+`<div>{js label + (3+5)}</div>`
 with params `{ label: 'test' }`
 produces `'<div>test8</div>'`.
 
