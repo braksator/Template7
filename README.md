@@ -75,6 +75,12 @@ is an object that will be used as the param for that template.
 These nested templates can access the state variable if applicable
 (see "Working With State" below)
 
+If you pass in a 4th parameter to sc.compile() 'report' as an empty object
+you will get a list of template names in `report.missing` that were not yet
+compiled.  Keep passing the same report variable in to subsequent call to
+sc.compile(), and this will tip you off as to which subtemplates need to
+packed with the templates you've compiled when sending to the browser.
+
 ### If-Statement
 `{#if variable}variable is truthy{/if}`
 `{#if !variable}variable is falsey{/if}`
