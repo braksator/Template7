@@ -64,16 +64,19 @@ var params = {
 ## Helpers
 
 ### Nested templates / Subtemplates / Partials
+
 (yeah, I'm not sure what to call these - partials is misleading because the
 subtemplate can be a repurposed full template)
 
 A template can use another template to handle part of it's output.
+
 `{> SubtemplateName childParam}`
+
 Where 'SubtemplateName' is the name of the nested template and 'childParam'
 is an object that will be used as the param for that template.
 
 These nested templates can access the state variable if applicable
-(see "Working With State" below)
+(see "Working With State" below).
 
 If you pass in a 4th parameter to sc.compile() 'report' as an empty object
 you will get a list of template names in `report.missing` that were not yet
@@ -82,6 +85,7 @@ sc.compile(), and this will tip you off as to which subtemplates need to
 packed with the templates you've compiled when sending to the browser.
 
 ### If-Statement
+
 `{#if variable}variable is truthy{/if}`
 
 `{#if !variable}variable is falsey{/if}`
@@ -89,17 +93,20 @@ packed with the templates you've compiled when sending to the browser.
 `{#if variable}variable is truthy{else}variable is falsey{/if}`
 
 ### Looping Object Properties
+
 ```JavaScript
 {#for stuff in myObject}
 <li>{stuff}: {myObject[stuff]}</li>
 {/for}
 ```
+
 Here the object `myObject` is being looped, and the template has nominated each property be named `stuff`.
 So `{stuff}` will output the key, and `{myObject[stuff]}` will output the value.
 Note: The syntax for looping object properties uses the 'in' keyword.
 You can also use `{_i}` to get a numeric index.
 
 ### Looping Arrays Of Objects
+
 ```JavaScript
 {#for person of people}
 <li>{person.firstName} {person.lastName}</li>
@@ -107,6 +114,7 @@ You can also use `{_i}` to get a numeric index.
 ```
 
 Will work with these params:
+
 ```JavaScript
     var params = {
       people : [
@@ -121,10 +129,13 @@ Will work with these params:
       ]
     };
 ```
+
 Note: The syntax for looping arrays uses the 'of' keyword.
+
 You can also use `{_i}` to get a numeric index.
 
 ### Looping Arrays
+
 ```JavaScript
 {#for thing of like}
 <li>{thing}</li>
@@ -132,17 +143,22 @@ You can also use `{_i}` to get a numeric index.
 ```
 
 Will work with these params:
+
 ```JavaScript
 var params = {
   like: ['people', 'places', 'things']
 };
 ```
+
 Note: The syntax for looping arrays uses the 'of' keyword.
+
 You can also use `{_i}` to get a numeric index.
 
 ### Handling Empty Arrays/Objects
+
 For-loops have an in-built 'else' condition which is used when there are no
 items to loop or the variable is missing.
+
 ```JavaScript
 {#for thing of like}
 <li>{thing}</li>
@@ -150,7 +166,9 @@ items to loop or the variable is missing.
 <li>No items to display</li>
 {/for}
 ```
+
 Will work with these params:
+
 ```JavaScript
 var params = {
   like: [],
@@ -158,6 +176,7 @@ var params = {
 ```
 
 ### Escaping HTML
+
 ```JavaScript
 var tpl = '<div>{escape value}</div>';
 var funcs = {};
@@ -172,12 +191,15 @@ var params = {
 ```
 
 ### JavaScript
+
 There is support for JavaScript in templates.
 
 As a helper:
+
 `{js label + (3+5)}` with params `{ label: 'test' }` produces `'<div>test8</div>'`.
 
 As an argument to another helper:
+
 `<a href="#"{#if js(title == "Link")} class="active"{/if}>` with params `{title: 'Link'}` produces `<a href="#" class="active">`.
 
 See "User-Supplied JavaScript" (below) if templates can be created by your users.
@@ -210,6 +232,7 @@ are passed to subtemplates/partials (unlike the parent template's params).
 
 To use a state variable simply set `sc.state` to the name of your state variable prior to running
 sc.compile():
+
 ```javascript
 var tpl = 'I can access {state.foo} in templates';
 sc.state = 'state';
@@ -238,6 +261,7 @@ replaced with an empty string.
 
 If you want to know whether a template contained JS that was skipped because of jsPerm being
 false, you can pass a 4th param to sc.compile(), an empty object, which will contain a report:
+
 ```javascript
 var tpl = "(the user supplied template)"
 var funcs = {};
@@ -246,6 +270,7 @@ sc.jsPerm = false;
 sc.compile(tpl, funcs, 'templateName', report);
 // report.jsSkipped now contains an array of template names where JS was skipped.
 ```
+
 You can reuse the report variable as you would with the func variable, and check it later.
 The results of this report can be used to warn the user that their JavaScript was omitted.
 
