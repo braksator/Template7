@@ -198,7 +198,7 @@ As a helper:
 
 `<div>{js label + (3+5)}</div>
 with params `{ label: 'test' }`
- produces `'<div>test8</div>'`.
+produces `'<div>test8</div>'`.
 
 As an argument to another helper:
 
