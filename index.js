@@ -61,10 +61,9 @@ var sc = module.exports = {
       process: (ctx, block, returns, functions, report) => {
         var iterVar = (ctx ? ctx + '.' : '') + block.contextName[2];
         var iterable = block.contextName[1] == 'in' ? 'Object.keys(' + iterVar + ')' : iterVar;
-        var inverse = block.contextName.toString().substring(0, 1) == '!';
+        block.vars = [ctx, block.contextName[0], '_i'];
         returns.push(
           '('
-          + (inverse ? '!' : '')
           + iterVar + '&&' + iterable + '.length?('
           + iterable + '.map((' + block.contextName[0]
           + ',_i)=>{return eval('
@@ -93,7 +92,10 @@ var sc = module.exports = {
           returns.push('eval(\'' + minifiedJsCode.code.replace(/'/, "\'") + '\')');
         }
         else {
-          report.jsSkipped = true;
+          if (!report.jsSkipped) {
+            report.jsSkipped = [];
+          }
+          report.jsSkipped.push(block.contextName[0]);
         }
 
       },
@@ -139,7 +141,7 @@ var sc = module.exports = {
       // Variable block
       if (block.type == 'variable') {
         var firstPart = block.contextName.split(/[\.\[\]]+/)[0];
-        if (sc.state && sc.state === firstPart || helper && ctx === firstPart) {
+        if (sc.state && sc.state === firstPart || helper && helper.vars.indexOf(firstPart) > -1) {
           returns.push(block.contextName);
         }
         else if (helper) {
@@ -163,6 +165,7 @@ var sc = module.exports = {
             let jsret = [];
             sc.helpers.js.process(ctx, block, jsret, null, report);
             block.contextName = jsret[0];
+            block.tplName = name;
             ctx = null;
           }
           block.parentCtx = oldCtx;

@@ -499,4 +499,35 @@ describe('Compile', function () {
 
     sc.state = false;
   });
+
+  it('should handle counter in for-loop over properties of objects', function () {
+    var tpl = '\
+      <p>Here are the properties of the person:</p>\
+      <ul>\
+        {#for property in person}\
+        <li>{property}: {person[property]} {_i}</li>\
+        {/for}\
+      </ul>\
+    ';
+    var state = {
+      alpha: "uno",
+      beta: "dos",
+    };
+    var params = {
+      person: {
+        firstName: 'John',
+        lastName: 'Doe'
+      }
+    };
+    var funcs = {};
+    sc.state = 'state';
+
+    sc.compile(tpl, funcs, 'myTpl');
+    debugFuncs(funcs);
+    var rendered = funcs.myTpl(params, state);
+
+    expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>firstName: John 0</li>  <li>lastName: Doe 1</li>  </ul>');
+
+    sc.state = false;
+  });
 });
