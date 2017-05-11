@@ -523,7 +523,7 @@ describe('Compile', function () {
     sc.state = 'state';
 
     sc.compile(tpl, funcs, 'myTpl');
-    debugFuncs(funcs);
+    //debugFuncs(funcs);
     var rendered = funcs.myTpl(params, state);
 
     expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>firstName: John 0</li>  <li>lastName: Doe 1</li>  </ul>');
