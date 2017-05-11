@@ -196,11 +196,15 @@ There is support for JavaScript in templates.
 
 As a helper:
 
-`{js label + (3+5)}` with params `{ label: 'test' }` produces `'<div>test8</div>'`.
+`<div>{js label + (3+5)}</div>
+with params `{ label: 'test' }`
+ produces `'<div>test8</div>'`.
 
 As an argument to another helper:
 
-`<a href="#"{#if js(title == "Link")} class="active"{/if}>` with params `{title: 'Link'}` produces `<a href="#" class="active">`.
+`<a href="#"{#if js(title == "Link")} class="active"{/if}>`
+with params `{ title: 'Link' }`
+produces `<a href="#" class="active">`.
 
 See "User-Supplied JavaScript" (below) if templates can be created by your users.
 
