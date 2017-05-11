@@ -1,6 +1,6 @@
 {
   "name": "shortcurly",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Light and powerful JavaScript templating",
   "main": "index.js",
   "scripts": {
