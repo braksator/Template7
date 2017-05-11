@@ -83,7 +83,9 @@ packed with the templates you've compiled when sending to the browser.
 
 ### If-Statement
 `{#if variable}variable is truthy{/if}`
+
 `{#if !variable}variable is falsey{/if}`
+
 `{#if variable}variable is truthy{else}variable is falsey{/if}`
 
 ### Looping Object Properties
