@@ -47,7 +47,7 @@ describe('Compile', function () {
     var tpl = '\
       <div>{name}</div><div>{birthday.year}</div><div>{sizes}</div>\
     ';
-    var data = {
+    var params = {
       name: 'Bob',
       birthday: { year: 1960 },
       sizes: [ 'small', 'medium', 'large' ]
@@ -56,7 +56,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<div>Bob</div><div>1960</div><div>small,medium,large</div>');
   });
@@ -65,14 +65,14 @@ describe('Compile', function () {
     var tpl = '\
       <div>{escape value}</div>\
     ';
-    var data = {
+    var params = {
       value: '<this>" & is not"</html>'
     };
     var funcs = {};
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<div>&lt;this&gt;&quot; &amp; is not&quot;&lt;/html&gt;</div>');
   });
@@ -81,7 +81,7 @@ describe('Compile', function () {
     var tpl = '\
       <a href="#"{#if active} class="active"{/if}>{title}</a>\
     ';
-    var data = {
+    var params = {
       active: true,
       title: 'Link',
     };
@@ -89,7 +89,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<a href="#" class="active">Link</a>');
   });
@@ -103,7 +103,7 @@ describe('Compile', function () {
       <p>I don\'t have hobby</p>\
       {/if}\
     ';
-    var data = {
+    var params = {
       name: 'John Doe',
       hobby: false
     };
@@ -111,7 +111,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Hello, my name is John Doe.</p>  <p>I don\'t have hobby</p> ');
   });
@@ -120,7 +120,7 @@ describe('Compile', function () {
     var tpl = '\
       <a href="#"{#if !active} class="active"{/if}>{title}</a>\
     ';
-    var data = {
+    var params = {
       active: true,
       title: 'Link',
     };
@@ -128,7 +128,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<a href="#">Link</a>');
   });
@@ -142,7 +142,7 @@ describe('Compile', function () {
       <p>I don\'t have hobby</p>\
       {/if}\
     ';
-    var data = {
+    var params = {
       name: 'John Doe',
       hobby: false
     };
@@ -150,7 +150,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Hello, my name is John Doe.</p>  <p>I have hobby</p> ');
   });
@@ -164,7 +164,7 @@ describe('Compile', function () {
         {/for}\
       </ul>\
     ';
-    var data = {
+    var params = {
       people : [
         {
           firstName: 'John',
@@ -180,7 +180,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Here is the list of people I know:</p><ul>  <li>John Doe</li>  <li>Mark Johnson</li>  </ul>');
   });
@@ -194,7 +194,7 @@ describe('Compile', function () {
         {/for}\
       </ul>\
     ';
-    var data = {
+    var params = {
       person: {
         firstName: 'John',
         lastName: 'Doe'
@@ -204,7 +204,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>firstName: John</li>  <li>lastName: Doe</li>  </ul>');
   });
@@ -220,7 +220,7 @@ describe('Compile', function () {
         {/if}\
       </ul>\
     ';
-    var data = {
+    var params = {
       person: {
         firstName: 'John',
         lastName: 'Doe'
@@ -230,7 +230,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>   <li>firstName: John</li>  <li>lastName: Doe</li>   </ul>');
   });
@@ -246,7 +246,7 @@ describe('Compile', function () {
         {/for}\
       </ul>\
     ';
-    var data = {
+    var params = {
       wrongParamName: {
         firstName: 'John',
         lastName: 'Doe'
@@ -256,7 +256,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>No props</li>  </ul>');
   });
@@ -270,14 +270,14 @@ describe('Compile', function () {
         {/for}\
       </ul>\
     ';
-    var data = {
+    var params = {
       like: ['people', 'places', 'things']
     };
     var funcs = {};
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Here are the things I like:</p><ul>  <li>people</li>  <li>places</li>  <li>things</li>  </ul>');
   });
@@ -293,14 +293,14 @@ describe('Compile', function () {
         {/for}\
       </ul>\
     ';
-    var data = {
+    var params = {
       like: [],
     };
     var funcs = {};
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<p>Here are the things I like:</p><ul>  <li>No items to display</li>  </ul>');
   });
@@ -310,11 +310,11 @@ describe('Compile', function () {
       <div>{js label + (3+5)}</div>\
     ';
     var funcs = {};
-    var data = { label: 'test' };
+    var params = { label: 'test' };
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<div>test8</div>');
   });
@@ -324,13 +324,13 @@ describe('Compile', function () {
       <div>{js label + (3+5)}</div>\
     ';
     var funcs = {};
-    var data = { label: 'test' };
+    var params = { label: 'test' };
 
     sc.jsPerm = false;
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<div></div>');
 
@@ -341,7 +341,7 @@ describe('Compile', function () {
     var tpl = '\
       <a href="#"{#if js(title == "Link")} class="active"{/if}>{title}</a>\
     ';
-    var data = {
+    var params = {
       active: true,
       title: 'Link',
     };
@@ -349,7 +349,7 @@ describe('Compile', function () {
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('<a href="#" class="active">Link</a>');
   });
@@ -358,12 +358,12 @@ describe('Compile', function () {
     var tpl = '\
       {#if js(let x = 10; let y = 5; x/2 == y)}YES{else}NO{/if}\
     ';
-    var data = {};
+    var params = {};
     var funcs = {};
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params);
 
     expect(rendered).to.equal('YES');
   });
@@ -378,7 +378,7 @@ describe('Compile', function () {
     var masterTpl = '\
       <div>{> nameTpl}{> yearTpl birthday}</div>\
     ';
-    var data = {
+    var params = {
       name: 'Bob',
       birthday: { year: 1960 },
     };
@@ -388,7 +388,7 @@ describe('Compile', function () {
     sc.compile(yearTpl, funcs, 'yearTpl');
     sc.compile(masterTpl, funcs, 'masterTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.masterTpl(data);
+    var rendered = funcs.masterTpl(params);
 
     expect(rendered).to.equal('<div><div>Bob</div><div>1960</div></div>');
   });
@@ -400,7 +400,7 @@ describe('Compile', function () {
     var masterTpl = '\
       <div>{> nameTpl}{> yearTpl birthday}</div>\
     ';
-    var data = {
+    var params = {
       name: 'Bob',
       birthday: { year: 1960 },
     };
@@ -424,7 +424,7 @@ describe('Compile', function () {
     var masterTpl = '\
       <div>{> nameTpl}</div>\
     ';
-    var data = {
+    var params = {
       name: 'Bob',
       birthday: { year: 1960 },
     };
@@ -434,7 +434,7 @@ describe('Compile', function () {
     sc.compile(yearTpl, funcs, 'yearTpl');
     sc.compile(masterTpl, funcs, 'masterTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.masterTpl(data);
+    var rendered = funcs.masterTpl(params);
 
     expect(rendered).to.equal('<div><div>Bob</div><div>1960</div></div>');
   });
@@ -450,12 +450,11 @@ describe('Compile', function () {
       alpha: "uno",
       beta: "dos",
     };
-    var data = {
+    var params = {
       name: 'Bob',
       sub: {
         year: 1960,
       },
-      state: state,
     };
     var funcs = {};
     sc.state = 'state';
@@ -463,7 +462,7 @@ describe('Compile', function () {
     sc.compile(tpl, funcs, 'myTpl');
     sc.compile(subTpl, funcs, 'subTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params, state);
 
     expect(rendered).to.equal('<div>Bob</div><div>uno</div><div>1960 - dos</div>');
 
@@ -475,7 +474,7 @@ describe('Compile', function () {
       <p>Here are the properties of the person:</p>\
       <ul>\
         {#for property in person}\
-        <li>{property}: {person[property]} {p.state.alpha}</li>\
+        <li>{property}: {person[property]} {state.alpha}</li>\
         {/for}\
       </ul>\
     ';
@@ -483,19 +482,18 @@ describe('Compile', function () {
       alpha: "uno",
       beta: "dos",
     };
-    var data = {
+    var params = {
       person: {
         firstName: 'John',
         lastName: 'Doe'
-      },
-      state: state,
+      }
     };
     var funcs = {};
     sc.state = 'state';
 
     sc.compile(tpl, funcs, 'myTpl');
     //debugFuncs(funcs);
-    var rendered = funcs.myTpl(data);
+    var rendered = funcs.myTpl(params, state);
 
     expect(rendered).to.equal('<p>Here are the properties of the person:</p><ul>  <li>firstName: John uno</li>  <li>lastName: Doe uno</li>  </ul>');
 

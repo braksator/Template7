@@ -8,7 +8,6 @@
 
 var esprima = require('esprima');
 var jsmin = require('escompress');
-var htmlmin = require('html-minifier').minify;
 
 var sc = module.exports = {
 
@@ -18,17 +17,14 @@ var sc = module.exports = {
   options: {
     esprima: {},
     jsmin: {},
-    htmlmin: {ignoreCustomFragments: [ /\{\{[\s\S]*?\}\}/ ]}
   },
 
   helpers: {
     partial: {
       process: (ctx, block, returns, functions, report) => {
         var arg = block.contextName[1] ? ctx + '.' + block.contextName[1] : 'p';
-        if (sc.state) {
-          arg = 'Object.assign(' + arg + ',{' + sc.state + ':' + ctx + '.' + sc.state + '})';
-        }
-        returns.push('this.' + block.contextName[0] + '(' + arg + ')');
+        var stateParam = sc.state ? ',' + sc.state : '';
+        returns.push('this.' + block.contextName[0] + '(' + arg + stateParam + ')');
         if (!functions[block.contextName[0]]) {
           if (!report.missing) {
             report.missing = [];
@@ -63,36 +59,20 @@ var sc = module.exports = {
     },
     for: {
       process: (ctx, block, returns, functions, report) => {
-        var forFunc = block.contextName[1] == 'in' ? sc.helpers.for.forIn : sc.helpers.for.forOf;
+        var iterVar = (ctx ? ctx + '.' : '') + block.contextName[2];
+        var iterable = block.contextName[1] == 'in' ? 'Object.keys(' + iterVar + ')' : iterVar;
+        var inverse = block.contextName.toString().substring(0, 1) == '!';
         returns.push(
-          'this.' + forFunc.abbrv + '('
-          + ctx + ','
-          + (ctx ? ctx + '.' : '') + block.contextName[2] + ','
-          + JSON.stringify(sc.compile(block.content, functions, null, report, 'k', block)) + ','
-          + JSON.stringify(sc.compile(block.inverseContent, functions, null, report, 'k', block))
+          '('
+          + (inverse ? '!' : '')
+          + iterVar + '&&' + iterable + '.length?('
+          + iterable + '.map((' + block.contextName[0]
+          + ',_i)=>{return eval('
+          + JSON.stringify(sc.compile(block.content, functions, null, report, block.contextName[0], block) || "''")
+          + ')}).join(\'\')):'
+          + (sc.compile(block.inverseContent, functions, null, report, ctx, block) || "''")
           + ')'
         );
-        functions[forFunc.abbrv] = forFunc.func();
-      },
-      forOf: {
-        abbrv: '_fo',
-        func: () => {
-          return eval('((p,a,c,d)=>{let r=\'\';if(a&&a.length){for(let k of a)r+=eval(c);}else{r+=eval(d);}return r})');
-        },
-      },
-      forIn: {
-        abbrv: '_fi',
-        func: () => {
-          return eval('((p,a,c,d)=>{let r=\'\';if(a&&Object.keys(a).length){for(let k in a)r+=eval(c);}else{r+=eval(d);}return r})');
-        },
-      },
-      blockAlter: function (helper, block) {
-        if (block.type == 'variable') {
-          var reps = {};
-          reps[helper.contextName[2]] = 'a';
-          reps[helper.contextName[0]] = 'k';
-          block.contextName = sc.varReplace(block.contextName, reps);
-        }
       },
     },
     js: {
@@ -138,6 +118,7 @@ var sc = module.exports = {
       // Remove extra whitespace.
       htmlTpl = htmlTpl.trim().replace(/\s\s+/g, ' ').replace(/> </, '><');
     }
+
     if (!report) report = {};
 
     var blocks = sc.stringToBlocks(htmlTpl);
@@ -145,14 +126,6 @@ var sc = module.exports = {
     var returns = [];
     var resultString = '';
     for (let block of blocks) {
-
-      // If this is a helper recurrence allow the helper to alter the block.
-      if (helper) {
-        var alterFunc = sc.helpers[helper.helperName].blockAlter;
-        if (alterFunc) {
-          alterFunc(helper, block);
-        }
-      }
 
       // Plain block
       if (block.type == 'plain') {
@@ -165,7 +138,16 @@ var sc = module.exports = {
 
       // Variable block
       if (block.type == 'variable') {
-        returns.push((!helper ? ctx + '.' : '') + block.contextName);
+        var firstPart = block.contextName.split(/[\.\[\]]+/)[0];
+        if (sc.state && sc.state === firstPart || helper && ctx === firstPart) {
+          returns.push(block.contextName);
+        }
+        else if (helper) {
+          returns.push(helper.parentCtx + '.' + block.contextName);
+        }
+        else {
+          returns.push(ctx + '.' + block.contextName);
+        }
       }
 
       // Helpers block
@@ -183,6 +165,7 @@ var sc = module.exports = {
             block.contextName = jsret[0];
             ctx = null;
           }
+          block.parentCtx = oldCtx;
           sc.helpers[block.helperName].process(ctx, block, returns, functions, report);
           ctx = oldCtx;
         }
@@ -198,7 +181,9 @@ var sc = module.exports = {
     }
     else if (name) {
       statements.push('return ' + returns.join('+'));
-      functions[name] = eval('(function(' + ctx + '){' + statements.join(';').replace(/\s\s+/g, ' ') + '})');
+      var stateParam = sc.state ? ',' + sc.state : '';
+      functions[name] = eval('(function(' + ctx + stateParam + '){'
+        + statements.join(';').replace(/\s\s+/g, ' ') + '})');
       var missingIndex = report.missing ? report.missing.indexOf(name) : -1;
       if (missingIndex > -1) {
         report.missing.splice(missingIndex, 1);
